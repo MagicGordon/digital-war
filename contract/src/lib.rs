@@ -1,9 +1,11 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::{UnorderedMap, Vector, UnorderedSet, LookupMap};
-use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault};
-use rand::{Rng, SeedableRng};
+use near_sdk::collections::{Vector, UnorderedSet, LookupMap};
+use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, Promise, PromiseResult};
+use near_sdk::serde::Serialize;
 
-#[derive(BorshDeserialize, BorshSerialize)]
+// use rand::{Rng, SeedableRng};
+
+#[derive(BorshDeserialize, BorshSerialize, Serialize)]
 pub struct Digital {
     pub owner: AccountId,
     pub digital: u64,
@@ -27,8 +29,6 @@ pub struct DigitalCenter {
     pub digitals: Vector<Digital>,
     pub next: u64
 }
-
-//let rand: u8 = *env::random_seed().get(0).unwrap();
 
 #[near_bindgen]
 impl DigitalCenter {
@@ -61,6 +61,9 @@ impl DigitalCenter {
 
     pub fn pk(&mut self, own_digital: u64, target_digital: u64) -> String{
         let account_id= env::signer_account_id();
+        if own_digital == target_digital {
+            return "own_digital can not eq target_digital".to_string()
+        }
         let mut own = match self.digitals.get(own_digital){
             Some(r) => r,
             None => return "Invalid own_digital".to_string()
@@ -75,37 +78,43 @@ impl DigitalCenter {
             return "you are not own_digital owner".to_string();
         }
 
-        let mut rng = rand_xorshift::XorShiftRng::seed_from_u64(env::block_timestamp());
-        let rand_own = rng.gen::<u32>();
-        let rand_target  = rng.gen::<u32>();
+        if own_digital_set.contains(&target_digital){
+            return "can not pk your own digital".to_string();
+        }
+
+        let index = if env::random_seed().len() as u64 > env::block_timestamp() % 10  { env::block_timestamp() % 10 } else { env::random_seed().len() as u64 - 1};
+        let rand_own = *env::random_seed().get(index as usize).unwrap() ;
+        let rand_target  = *env::random_seed().get((if index - 1 > 0 {index - 1} else {index}) as usize).unwrap();
 
         let target_owner = target.owner.clone();
         let mut target_digital_set = self.account_indices.get(&target_owner).unwrap();
 
         let mut result = String::new();
-        if (rand_own / 100 * (own.level + 100)) > (rand_target / 100 * (target.level + 100)){
+        if (rand_own as u32 * (own.level + 100) / 100) > (rand_target as u32  * (target.level + 100) / 100){
             if 0 == target.level - 1 {
                 target.owner = account_id.clone();
                 
                 result.push_str("you are win, get target digital!");
+                target_digital_set.remove(&target_digital);
+                own_digital_set.insert(&target_digital);
             } else {
                 target.level -= 1;
                 result.push_str("you are win, target digital level minus 1!");
             }
             own.level += 1;
-            own_digital_set.insert(&target_digital);
-            target_digital_set.remove(&target_digital);
+            
         }else {
             if 0 == own.level - 1 {
                 own.owner = target_owner.clone();
                 result.push_str("you are lose, target get your digital!");
+                own_digital_set.remove(&own_digital);
+                target_digital_set.insert(&own_digital);
             } else {
                 own.level -= 1;
                 result.push_str("you are lose, your digital level minus 1!");
             }
             target.level += 1;
-            target_digital_set.insert(&own_digital);
-            own_digital_set.remove(&own_digital);
+            
         }
 
         self.digitals.replace(own_digital, &own);
@@ -115,6 +124,41 @@ impl DigitalCenter {
         self.account_indices.insert(&target_owner, &target_digital_set);
         result
     }
+
+    pub fn get_digitals(&self, accountId: AccountId) -> Vec<u64> {
+        let mut result = vec![];
+        let set = match self.account_indices.get(&accountId){
+            Some(r) => r,
+            None => return result
+        };
+
+        set.iter().map(|item| {
+            item
+        }).for_each(|item|{
+            result.push(item)
+        }); 
+        
+        result
+    }
+
+    pub fn get_all_digitals(&self) -> Vec<Digital> {
+        let mut result = vec![];
+        self.digitals.iter().map(|item| {
+            item
+        }).for_each(|item|{
+            result.push(item)
+        }); 
+        
+        result
+    }
+
+    // #[payable]
+    // pub fn levelup(&mut self) {
+    //     let account_id= env::signer_account_id();
+
+    //     println!("att::::: {}", env::attached_deposit());
+    //     println!("acc::::: {}", env::account_balance());
+    // }
 }
 
 
@@ -135,7 +179,7 @@ mod tests {
             block_index: 1,
             block_timestamp,
             epoch_height: 1,
-            account_balance: 10u128.pow(26),
+            account_balance: 10u128,//.pow(26)
             account_locked_balance: 0,
             storage_usage: 10u64.pow(6),
             attached_deposit: 0,
@@ -191,7 +235,7 @@ mod tests {
 
         assert_eq!(contract.add_first(), "success");
 
-        context.block_timestamp = 4_600_000_000_000;
+        context.random_seed = vec![20, 10, 2];
         testing_env!(context.clone());
 
         assert_eq!(contract.pk(2, 1), "you are win, target digital level minus 1!");
@@ -217,4 +261,26 @@ mod tests {
         testing_env!(context.clone());
         assert_eq!(contract.pk(1, 0), "you are not own_digital owner");
     }
+
+    #[test]
+    fn get_digitals_work(){
+        let mut context = get_context("digital1.test".to_string(), 3_600_000_000_000);
+        testing_env!(context.clone());
+        let mut contract = DigitalCenter::new();
+
+        let aa: Vec<u64> = Vec::new();
+        assert_eq!(contract.get_digitals("digital1.test".to_string()), aa);
+        assert_eq!(contract.add_first(), "success".to_string());
+        assert_eq!(contract.get_digitals("digital1.test".to_string()), vec![0]);
+    }
+
+    // #[test]
+    // fn levelup(){
+    //     let mut context = get_context("digital1.test".to_string(), 3_600_000_000_000);
+    //     context.attached_deposit = 50;
+    //     testing_env!(context.clone());
+    //     let mut contract = DigitalCenter::new();
+    //     contract.levelup();
+
+    // }
 }
