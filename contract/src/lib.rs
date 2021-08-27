@@ -154,7 +154,6 @@ impl DigitalCenter {
 
     #[payable]
     pub fn levelup(&mut self, digital: u64) -> String {
-        let account_id= env::signer_account_id();
         assert!(env::attached_deposit() >= 10, "Deposit is too low");
         let mut old = match self.digitals.get(digital){
             Some(r) => r,
@@ -163,8 +162,6 @@ impl DigitalCenter {
         old.level += 1;
         self.digitals.replace(digital, &old);
         "levelup success".to_string()
-        // println!("att::::: {}", env::attached_deposit());
-        // println!("acc::::: {}", env::account_balance());
     }
 }
 
@@ -191,7 +188,7 @@ mod tests {
             storage_usage: 10u64.pow(6),
             attached_deposit: 0,
             prepaid_gas: 300 * 10u64.pow(12),
-            random_seed: vec![0, 1, 2],
+            random_seed: vec![0, 2, 1, 3, 4, 5, 6, 7],
             is_view: false,
             output_data_receivers: vec![],
         }
@@ -222,7 +219,7 @@ mod tests {
 
     #[test]
     fn test_pk() {
-        let mut context = get_context("digital1.test".to_string(), 3_600_000_000_000);
+        let mut context = get_context("digital1.test".to_string(), 3_600_000_000_002);
         testing_env!(context.clone());
         let mut contract = DigitalCenter::new();
 
@@ -242,7 +239,7 @@ mod tests {
 
         assert_eq!(contract.add_first(), "success");
 
-        context.random_seed = vec![20, 10, 2];
+        context.random_seed = vec![0, 1, 2, 3, 4, 5, 6, 7];
         testing_env!(context.clone());
 
         assert_eq!(contract.pk(2, 1), "you are win, target digital level minus 1!");

@@ -2,10 +2,13 @@ import "./App.css";
 import React from 'react';
 // import BN from 'bn.js';
 import * as nearAPI from 'near-api-js'
+import Big from 'big.js';
 
-// const OneNear = new BN("1000000000000000000000000");
-// const ContractName = 'dev-1629947058100-39317342737943';
-const ContractName = 'dev-1629962930296-20948195726082';
+const TGas = Big(10).pow(12);
+const BoatOfGas = Big(200).mul(TGas);
+
+// const ContractName = 'dev-1629962930296-20948195726082';
+const ContractName = 'dev-1630033758756-26263481745179';
 
 class App extends React.Component {
   constructor(props) {
@@ -19,9 +22,14 @@ class App extends React.Component {
       all_digitals: [],
       own_digital: "",
       target_digital: "",
+      levelup_target:""
     };
 
     this._digitalRefreshTimer = null;
+
+
+    this.handleLevelUpTargetChange = this.handleLevelUpTargetChange.bind(this);
+    this.levelupSubmit = this.levelupSubmit.bind(this);
 
     this.handleOwnChange = this.handleOwnChange.bind(this);
     this.handleTargetChange = this.handleTargetChange.bind(this);
@@ -88,7 +96,7 @@ class App extends React.Component {
     this._account = this._walletConnection.account();
     this._contract = new nearAPI.Contract(this._account, ContractName, {
       viewMethods: ['get_digitals', 'next_digital', 'get_all_digitals'],
-      changeMethods: ['add_first', 'pk'],
+      changeMethods: ['add_first', 'pk', 'levelup'],
     });
     if (this._accountId) {
       await this.refreshAccountStats();
@@ -133,6 +141,21 @@ class App extends React.Component {
     event.preventDefault();
   }
 
+  async action_levelup(){
+    let res = await this._contract.levelup({digital: parseInt(this.state.levelup_target, 10)}, BoatOfGas.toFixed(0), Big(10000000000).mul(TGas).toFixed(0))
+    // alert('own_digital: ' + this.state.own_digital  + ',target_digital: ' + this.state.target_digital);
+    alert(res)
+    window.location.reload()
+  }
+
+  handleLevelUpTargetChange(event) {    this.setState({levelup_target: event.target.value});  }
+
+  levelupSubmit(event) {
+    this.action_levelup();
+    event.preventDefault();
+  }
+
+
   render() {
     const content = !this.state.connected ? (
       <div>Connecting... <span className="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span></div>
@@ -145,6 +168,11 @@ class App extends React.Component {
         </div>
         <h4>Hello, <span className="font-weight-bold">{this.state.accountId}</span>!</h4>
 
+        <form onSubmit={this.levelupSubmit}>
+          <label> digital: <input type="text" style={{marginLeft:"74px"}} value={this.state.levelup_target} onChange={(event) => {this.handleLevelUpTargetChange(event)}} /> </label><br/>
+          <input type="submit" value="levelup" />
+        </form>
+        <hr></hr>
         <form onSubmit={this.handleSubmit}>
           <label> challenger: <input type="text" style={{marginLeft:"44px"}} value={this.state.own_digital} onChange={(event) => {this.handleOwnChange(event)}} /> </label><br/>
           <label> challenge target: <input type="text" value={this.state.target_digital} onChange={(event) => {this.handleTargetChange(event)}} /> </label><br/>

@@ -2626,6 +2626,11 @@ big.js@^5.2.2:
   resolved "https://registry.nlark.com/big.js/download/big.js-5.2.2.tgz?cache=0&sync_timestamp=1620132748267&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fbig.js%2Fdownload%2Fbig.js-5.2.2.tgz#65f0af382f578bcdc742bd9c281e9cb2d7768328"
   integrity sha1-ZfCvOC9Xi83HQr2cKB6cstd2gyg=
 
+big.js@^6.0.3:
+  version "6.1.1"
+  resolved "https://registry.nlark.com/big.js/download/big.js-6.1.1.tgz?cache=0&sync_timestamp=1620132748267&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fbig.js%2Fdownload%2Fbig.js-6.1.1.tgz#63b35b19dc9775c94991ee5db7694880655d5537"
+  integrity sha1-Y7NbGdyXdclJke5dt2lIgGVdVTc=
+
 binary-extensions@^1.0.0:
   version "1.13.1"
   resolved "https://registry.nlark.com/binary-extensions/download/binary-extensions-1.13.1.tgz#598afe54755b2868a5330d2aff9d4ebb53209b65"
