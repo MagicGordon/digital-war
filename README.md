@@ -67,4 +67,4 @@ When the level is 0, the number changes the owner to the winner.
 ![](pic/digital-war-again.png)
 
 
-7、A pop-up box will appear after each operation. Please wait patiently. Have a good time!
+7、A pop-up box will appear after `challenge` and `Get first digital` operation. Please wait patiently. Have a good time!

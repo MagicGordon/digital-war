@@ -184,7 +184,7 @@ class App extends React.Component {
           <ul>
             {this.state.digitals.length !== 0 ?
               (this.state.digitals.map(value => <li key={value}> {value}</li>)) :
-              (<button className="btn btn-primary" onClick={() => this.addFirst()}>Get fist digital</button>)}
+              (<button className="btn btn-primary" onClick={() => this.addFirst()}>Get first digital</button>)}
           </ul>
         </div>
         <hr></hr>
