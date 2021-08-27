@@ -152,13 +152,20 @@ impl DigitalCenter {
         result
     }
 
-    // #[payable]
-    // pub fn levelup(&mut self) {
-    //     let account_id= env::signer_account_id();
-
-    //     println!("att::::: {}", env::attached_deposit());
-    //     println!("acc::::: {}", env::account_balance());
-    // }
+    #[payable]
+    pub fn levelup(&mut self, digital: u64) -> String {
+        let account_id= env::signer_account_id();
+        assert!(env::attached_deposit() >= 10, "Deposit is too low");
+        let mut old = match self.digitals.get(digital){
+            Some(r) => r,
+            None => return "Invalid digital".to_string()
+        };
+        old.level += 1;
+        self.digitals.replace(digital, &old);
+        "levelup success".to_string()
+        // println!("att::::: {}", env::attached_deposit());
+        // println!("acc::::: {}", env::account_balance());
+    }
 }
 
 
