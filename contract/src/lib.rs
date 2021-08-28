@@ -278,13 +278,27 @@ mod tests {
         assert_eq!(contract.get_digitals("digital1.test".to_string()), vec![0]);
     }
 
-    // #[test]
-    // fn levelup(){
-    //     let mut context = get_context("digital1.test".to_string(), 3_600_000_000_000);
-    //     context.attached_deposit = 50;
-    //     testing_env!(context.clone());
-    //     let mut contract = DigitalCenter::new();
-    //     contract.levelup();
+    #[test]
+    fn levelup(){
+        let mut context = get_context("digital1.test".to_string(), 3_600_000_000_000);
+        testing_env!(context.clone());
+        let mut contract = DigitalCenter::new();
+        assert_eq!(contract.add_first(), "success".to_string());
+        context.attached_deposit = 50;
+        testing_env!(context.clone());
+        assert_eq!(contract.levelup(0), "levelup success");
 
-    // }
+        
+    }
+
+    #[test]
+    #[should_panic(expected = "Deposit is too low")]
+    fn levelup_panic(){
+        let mut context = get_context("digital1.test".to_string(), 3_600_000_000_000);
+        testing_env!(context.clone());
+        let mut contract = DigitalCenter::new();
+        context.attached_deposit = 5;
+        testing_env!(context.clone());
+        contract.levelup(0);
+    }
 }
