@@ -8,7 +8,8 @@ const TGas = Big(10).pow(12);
 const BoatOfGas = Big(200).mul(TGas);
 
 // const ContractName = 'dev-1629962930296-20948195726082';
-const ContractName = 'dev-1630033758756-26263481745179';
+// const ContractName = 'dev-1630033758756-26263481745179';
+const ContractName = 'dev-1630146349634-18193940589410';
 
 class App extends React.Component {
   constructor(props) {
